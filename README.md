@@ -7,7 +7,7 @@ texto plano durante el registro de usuarios, y por que esto representa una
 ## Objetivo
 
 Comprobar si la aplicacion expone contrasenas en texto plano durante el
-proceso de registro y comparar con una version que aplica hashing (bcrypt).
+proceso de registro.
 
 ## Requisitos
 
@@ -26,8 +26,6 @@ El servidor queda disponible en `http://localhost:3000`.
 
 ## Procedimiento del laboratorio
 
-### Parte 1 - Version vulnerable
-
 1. Abre `http://localhost:3000/index.html`.
 2. Presiona **F12** para abrir las herramientas de desarrollador.
 3. Entra a la pestana **Network** (Red).
@@ -42,15 +40,6 @@ El servidor queda disponible en `http://localhost:3000`.
 10. **Evidencia 2**: captura mostrando que la contrasena se almaceno tal cual
     en el servidor.
 
-### Parte 2 - Version segura (comparativa)
-
-1. Abre `http://localhost:3000/secure.html`.
-2. Repite el procedimiento (F12, Network, Preserve log, registrar usuario).
-3. Inspecciona la peticion `register-secure` en la pestana **Payload**.
-4. Abre `http://localhost:3000/admin/secure-data`.
-5. **Evidencia 3**: captura mostrando que el servidor almaceno un **hash bcrypt**
-   en lugar de la contrasena original.
-
 ## Analisis esperado (entregable del estudiante)
 
 Responde en el informe:
@@ -63,38 +52,26 @@ Responde en el informe:
    - Fugas en logs, backups o volcados de memoria revelan contrasenas.
    - Si los usuarios reutilizan contrasenas (muy comun), un atacante
      compromete tambien sus cuentas en otros servicios.
-4. **Mitigaciones aplicadas en la version segura**:
-   - **Hashing con bcrypt** y factor de costo configurable.
-   - **Salt unico por usuario** (bcrypt lo incorpora automaticamente).
-   - El servidor nunca persiste la contrasena original.
-5. **Mitigaciones adicionales recomendadas**:
+4. **Mitigaciones recomendadas**:
+   - **Hashing con bcrypt / Argon2** y factor de costo configurable.
+   - **Salt unico por usuario** (bcrypt y Argon2 lo incorporan).
+   - El servidor nunca debe persistir la contrasena original.
    - Forzar **HTTPS (TLS)** para que el trafico no sea legible en la red.
    - Validacion de complejidad y longitud minima de la contrasena.
    - Rate limiting en el endpoint de registro.
    - Politicas contra contrasenas filtradas (HaveIBeenPwned).
 
-## Nota importante
-
-> Aunque la version segura aplica bcrypt en el servidor, la contrasena
-> **sigue apareciendo** en la pestana Payload del navegador. Esto es
-> esperado: DevTools ve la peticion **antes** de que TLS la cifre.
-> La proteccion en transito la da **HTTPS**; la proteccion en reposo
-> la da el **hashing**. Ambas capas son necesarias.
-
 ## Estructura del proyecto
 
 ```
 credential-exposure-lab/
-|-- server.js                Servidor Express con ambos endpoints
+|-- server.js                Servidor Express con el endpoint de registro
 |-- package.json
 |-- public/
-|   |-- index.html           Formulario vulnerable
-|   |-- secure.html          Formulario seguro
-|   |-- app.js               Cliente del formulario vulnerable
-|   |-- secure.js            Cliente del formulario seguro
+|   |-- index.html           Formulario de registro
+|   |-- app.js               Cliente del formulario
 |   `-- style.css
-|-- users-vulnerable.json    Generado al registrar (texto plano)
-`-- users-secure.json        Generado al registrar (bcrypt)
+`-- users-vulnerable.json    Generado al registrar (texto plano)
 ```
 
 ## Endpoints
@@ -102,15 +79,13 @@ credential-exposure-lab/
 | Metodo | Ruta                         | Descripcion                                |
 |--------|------------------------------|--------------------------------------------|
 | POST   | `/register`                  | Registro vulnerable (almacena texto plano) |
-| POST   | `/register-secure`           | Registro seguro (almacena hash bcrypt)     |
-| GET    | `/admin/vulnerable-data`     | Lista de usuarios vulnerables              |
-| GET    | `/admin/secure-data`         | Lista de usuarios seguros                  |
-| POST   | `/admin/reset`               | Borra ambas bases de datos                 |
+| GET    | `/admin/vulnerable-data`     | Lista de usuarios registrados              |
+| POST   | `/admin/reset`               | Borra la base de datos                     |
 
-## Reiniciar las bases de datos
+## Reiniciar la base de datos
 
 ```bash
 curl -X POST http://localhost:3000/admin/reset
 ```
 
-O simplemente borra los archivos `users-vulnerable.json` y `users-secure.json`.
+O simplemente borra el archivo `users-vulnerable.json`.
