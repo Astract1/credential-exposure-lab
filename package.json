@@ -1,0 +1,13 @@
+{
+  "name": "credential-exposure-lab",
+  "version": "1.0.0",
+  "description": "Laboratorio educativo - exposicion de credenciales en DevTools (OWASP A02:2021)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "express": "^4.19.2"
+  }
+}
